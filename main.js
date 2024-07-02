@@ -68,3 +68,4 @@ app.listen(configs.getPort(), () => {
 
     console.log(`Application running on: ${configs.getUrl()}`);
 });
+module.exports = app
