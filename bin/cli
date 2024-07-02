@@ -1,0 +1,73 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+const path = require('path');
+const templates = require('./templates');
+
+const ucfirst = str => str.charAt(0).toUpperCase() + str.slice(1);
+
+const getType = type => {
+  const types = {
+    'c': 'controller',
+    'm': 'model',
+    's': 'service',
+    'r': 'resource'
+  };
+  return types[type] || type;
+};
+
+const generateFile = (dirPath, fileName, template) => {
+
+  if (!fs.existsSync(dirPath)) {
+
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+
+  fs.writeFileSync(path.join(dirPath, fileName), template, 'utf8');
+};
+
+const generate = (fileName, fileType) => {
+
+  const FileName = ucfirst(fileName);
+  const fileTypeLower = fileType.toLowerCase();
+
+  if (fileTypeLower === 'resource') {
+
+    ['controller', 'model', 'service'].forEach(type => {
+      const dirPath = path.join(__dirname, `../src/${type}s`);
+      const filePath = `${fileName}.${type}.js`;
+      const template = templates[type](FileName);
+      generateFile(dirPath, filePath, template);
+      console.log(`${ucfirst(type)} ${filePath} created successfully`);
+    });
+  } else {
+
+    const dirPath = path.join(__dirname, `../src/${fileTypeLower}s`);
+    const filePath = `${fileName}.${fileTypeLower}.js`;
+    const template = templates[fileTypeLower](FileName);
+    generateFile(dirPath, filePath, template);
+    console.log(`${ucfirst(fileTypeLower)} ${filePath} created successfully`);
+  }
+};
+
+const [,, type, name] = process.argv;
+const valideType = [
+  'controller', 'c',
+  'service', 's',
+  'model', 'm',
+  'resource', 'r'
+];
+
+if (!type || !valideType.includes(type)) {
+
+  console.error('Please enter a valid type');
+  process.exit(1);
+}
+
+if (!name) {
+
+  console.error('Please enter a valid name');
+  process.exit(1);
+}
+
+generate(name, getType(type));
